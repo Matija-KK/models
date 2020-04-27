@@ -35,7 +35,7 @@ def apply_with_random_selector(x, func, num_cases):
     The result of func(x, sel), where func receives the value of the
     selector as a python integer, but sel is sampled dynamically.
   """
-  sel = tf.random_uniform([], maxval=num_cases, dtype=tf.int32)
+  sel = tf.random.uniform([], maxval=num_cases, dtype=tf.int32)
   # Pass the real x only to one of the func calls.
   return control_flow_ops.merge([
       func(control_flow_ops.switch(x, tf.equal(sel, case))[1], case)
@@ -298,7 +298,7 @@ def preprocess_for_eval(image,
     if height and width:
       # Resize the image to the specified height and width.
       image = tf.expand_dims(image, 0)
-      image = tf.image.resize_bilinear(image, [height, width],
+      image = tf.compat.v1.image.resize_bilinear(image, [height, width],
                                        align_corners=False)
       image = tf.squeeze(image, [0])
     image = tf.subtract(image, 0.5)

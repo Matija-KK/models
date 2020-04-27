@@ -47,7 +47,7 @@ def _running_total(value, shape, name=None):
         initializer=tf.zeros_initializer(),
         trainable=False,
         collections=[
-            tf.GraphKeys.LOCAL_VARIABLES, tf.GraphKeys.METRIC_VARIABLES
+            tf.compat.v1.GraphKeys.LOCAL_VARIABLES, tf.compat.v1.GraphKeys.METRIC_VARIABLES
         ])
     updated_total = tf.assign_add(total_var, value, use_locking=True)
 

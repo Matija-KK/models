@@ -440,7 +440,7 @@ class NasNetABaseCell(object):
       net: the Tensor that gets drop_path regularization applied.
       current_step: a float32 Tensor with the current global_step value,
         to be divided by hparams.total_training_steps. Usually None, which
-        defaults to tf.train.get_or_create_global_step() properly casted.
+        defaults to tf.compat.v1.train.get_or_create_global_step() properly casted.
       use_summaries: a Python boolean. If set to False, no summaries are output.
       drop_connect_version: one of 'v1', 'v2', 'v3', controlling whether
         the dropout rate is scaled by current_step (v1), layer (v2), or

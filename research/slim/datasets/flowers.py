@@ -71,9 +71,9 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
     reader = tf.TFRecordReader
 
   keys_to_features = {
-      'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
-      'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
-      'image/class/label': tf.FixedLenFeature(
+      'image/encoded': tf.io.FixedLenFeature((), tf.string, default_value=''),
+      'image/format': tf.io.FixedLenFeature((), tf.string, default_value='png'),
+      'image/class/label': tf.io.FixedLenFeature(
           [], tf.int64, default_value=tf.zeros([], dtype=tf.int64)),
   }
 

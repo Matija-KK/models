@@ -88,7 +88,7 @@ flags.DEFINE_integer('max_number_of_evaluations', 0,
 
 
 def main(unused_argv):
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
   dataset = data_generator.Dataset(
       dataset_name=FLAGS.dataset,
@@ -105,8 +105,8 @@ def main(unused_argv):
       should_shuffle=False,
       should_repeat=False)
 
-  tf.gfile.MakeDirs(FLAGS.eval_logdir)
-  tf.logging.info('Evaluating on %s set', FLAGS.eval_split)
+  tf.io.gfile.makedirs(FLAGS.eval_logdir)
+  tf.compat.v1.logging.info('Evaluating on %s set', FLAGS.eval_split)
 
   with tf.Graph().as_default():
     samples = dataset.get_one_shot_iterator().get_next()
@@ -124,11 +124,11 @@ def main(unused_argv):
          int(FLAGS.eval_crop_size[1]),
          3])
     if tuple(FLAGS.eval_scales) == (1.0,):
-      tf.logging.info('Performing single-scale test.')
+      tf.compat.v1.logging.info('Performing single-scale test.')
       predictions = model.predict_labels(samples[common.IMAGE], model_options,
                                          image_pyramid=FLAGS.image_pyramid)
     else:
-      tf.logging.info('Performing multi-scale test.')
+      tf.compat.v1.logging.info('Performing multi-scale test.')
       if FLAGS.quantize_delay_step >= 0:
         raise ValueError(
             'Quantize mode is not supported with multi-scale test.')
@@ -188,11 +188,11 @@ def main(unused_argv):
 
     summary_ops = []
     for metric_name, metric_value in six.iteritems(metrics_to_values):
-      op = tf.summary.scalar(metric_name, metric_value)
+      op = tf.compat.v1.summary.scalar(metric_name, metric_value)
       op = tf.Print(op, [metric_value], metric_name)
       summary_ops.append(op)
 
-    summary_op = tf.summary.merge(summary_ops)
+    summary_op = tf.compat.v1.summary.merge(summary_ops)
     summary_hook = contrib_training.SummaryAtEndHook(
         log_dir=FLAGS.eval_logdir, summary_op=summary_op)
     hooks = [summary_hook]
@@ -224,4 +224,4 @@ if __name__ == '__main__':
   flags.mark_flag_as_required('checkpoint_dir')
   flags.mark_flag_as_required('eval_logdir')
   flags.mark_flag_as_required('dataset_dir')
-  tf.app.run()
+  tf.compat.v1.app.run()

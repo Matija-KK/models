@@ -67,7 +67,7 @@ def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir):
     RuntimeError: If loaded image and label have different shape.
   """
 
-  img_names = tf.gfile.Glob(os.path.join(dataset_dir, '*.jpg'))
+  img_names = tf.io.gfile.glob(os.path.join(dataset_dir, '*.jpg'))
   random.shuffle(img_names)
   seg_names = []
   for f in img_names:
@@ -113,11 +113,11 @@ def _convert_dataset(dataset_split, dataset_dir, dataset_label_dir):
 
 
 def main(unused_argv):
-  tf.gfile.MakeDirs(FLAGS.output_dir)
+  tf.io.gfile.makedirs(FLAGS.output_dir)
   _convert_dataset(
       'train', FLAGS.train_image_folder, FLAGS.train_image_label_folder)
   _convert_dataset('val', FLAGS.val_image_folder, FLAGS.val_image_label_folder)
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

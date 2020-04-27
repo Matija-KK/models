@@ -94,7 +94,7 @@ def main(_):
   if not FLAGS.dataset_dir:
     raise ValueError('You must supply the dataset directory with --dataset_dir')
 
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   with tf.Graph().as_default():
     tf_global_step = slim.get_or_create_global_step()
 
@@ -172,9 +172,9 @@ def main(_):
     # Print the summaries to screen.
     for name, value in names_to_values.items():
       summary_name = 'eval/%s' % name
-      op = tf.summary.scalar(summary_name, value, collections=[])
+      op = tf.compat.v1.summary.scalar(summary_name, value, collections=[])
       op = tf.Print(op, [value], summary_name)
-      tf.add_to_collection(tf.GraphKeys.SUMMARIES, op)
+      tf.add_to_collection(tf.compat.v1.GraphKeys.SUMMARIES, op)
 
     # TODO(sguada) use num_epochs=1
     if FLAGS.max_num_batches:
@@ -188,7 +188,7 @@ def main(_):
     else:
       checkpoint_path = FLAGS.checkpoint_path
 
-    tf.logging.info('Evaluating %s' % checkpoint_path)
+    tf.compat.v1.logging.info('Evaluating %s' % checkpoint_path)
 
     slim.evaluation.evaluate_once(
         master=FLAGS.master,
@@ -200,4 +200,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

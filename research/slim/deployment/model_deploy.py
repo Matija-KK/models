@@ -43,7 +43,7 @@ Usage:
 
   # Define the optimizer.
   with tf.device(config.optimizer_device()):
-    optimizer = tf.train.MomentumOptimizer(FLAGS.learning_rate, FLAGS.momentum)
+    optimizer = tf.compat.v1.train.MomentumOptimizer(FLAGS.learning_rate, FLAGS.momentum)
 
   # Define the model including the loss.
   def model_fn(inputs_queue):
@@ -149,13 +149,13 @@ def create_clones(config, model_fn, args=None, kwargs=None):
   `Clone(outputs, scope, device)`
 
   Note: it is assumed that any loss created by `model_fn` is collected at
-  the tf.GraphKeys.LOSSES collection.
+  the tf.compat.v1.GraphKeys.LOSSES collection.
 
   To recover the losses, summaries or update_ops created by the clone use:
   ```python
-    losses = tf.get_collection(tf.GraphKeys.LOSSES, clone.scope)
-    summaries = tf.get_collection(tf.GraphKeys.SUMMARIES, clone.scope)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, clone.scope)
+    losses = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.LOSSES, clone.scope)
+    summaries = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES, clone.scope)
+    update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, clone.scope)
   ```
 
   The deployment options are specified by the config object and support
@@ -189,7 +189,7 @@ def create_clones(config, model_fn, args=None, kwargs=None):
       with tf.name_scope(config.clone_scope(i)) as clone_scope:
         clone_device = config.clone_device(i)
         with tf.device(clone_device):
-          with tf.variable_scope(tf.get_variable_scope(),
+          with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope(),
                                  reuse=True if i > 0 else None):
             outputs = model_fn(*args, **kwargs)
           clones.append(Clone(outputs, clone_scope, clone_device))
@@ -216,7 +216,7 @@ def _gather_clone_loss(clone, num_clones, regularization_losses):
   # Compute and aggregate losses on the clone device.
   with tf.device(clone.device):
     all_losses = []
-    clone_losses = tf.get_collection(tf.GraphKeys.LOSSES, clone.scope)
+    clone_losses = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.LOSSES, clone.scope)
     if clone_losses:
       clone_loss = tf.add_n(clone_losses, name='clone_loss')
       if num_clones > 1:
@@ -231,11 +231,11 @@ def _gather_clone_loss(clone, num_clones, regularization_losses):
       sum_loss = tf.add_n(all_losses)
   # Add the summaries out of the clone device block.
   if clone_loss is not None:
-    tf.summary.scalar('/'.join(filter(None,
+    tf.compat.v1.summary.scalar('/'.join(filter(None,
                                       ['Losses', clone.scope, 'clone_loss'])),
                       clone_loss)
   if regularization_loss is not None:
-    tf.summary.scalar('Losses/regularization_loss', regularization_loss)
+    tf.compat.v1.summary.scalar('Losses/regularization_loss', regularization_loss)
   return sum_loss
 
 
@@ -276,7 +276,7 @@ def optimize_clones(clones, optimizer,
    clones: List of `Clones` created by `create_clones()`.
    optimizer: An `Optimizer` object.
    regularization_losses: Optional list of regularization losses. If None it
-     will gather them from tf.GraphKeys.REGULARIZATION_LOSSES. Pass `[]` to
+     will gather them from tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES. Pass `[]` to
      exclude them.
    **kwargs: Optional list of keyword arguments to pass to `compute_gradients`.
 
@@ -292,8 +292,8 @@ def optimize_clones(clones, optimizer,
   clones_losses = []
   num_clones = len(clones)
   if regularization_losses is None:
-    regularization_losses = tf.get_collection(
-        tf.GraphKeys.REGULARIZATION_LOSSES)
+    regularization_losses = tf.compat.v1.get_collection(
+        tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
   for clone in clones:
     with tf.name_scope(clone.scope):
       clone_loss, clone_grad = _optimize_clone(
@@ -347,7 +347,7 @@ def deploy(config,
 
   """
   # Gather initial summaries.
-  summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+  summaries = set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES))
 
   # Create Clones.
   clones = create_clones(config, model_fn, args, kwargs)
@@ -355,7 +355,7 @@ def deploy(config,
 
   # Gather update_ops from the first clone. These contain, for example,
   # the updates for the batch_norm variables created by model_fn.
-  update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, first_clone.scope)
+  update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, first_clone.scope)
 
   train_op = None
   total_loss = None
@@ -383,8 +383,8 @@ def deploy(config,
           train_op = tf.identity(total_loss, name='train_op')
     else:
       clones_losses = []
-      regularization_losses = tf.get_collection(
-          tf.GraphKeys.REGULARIZATION_LOSSES)
+      regularization_losses = tf.compat.v1.get_collection(
+          tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
       for clone in clones:
         with tf.name_scope(clone.scope):
           clone_loss = _gather_clone_loss(clone, len(clones),
@@ -398,16 +398,16 @@ def deploy(config,
 
     # Add the summaries from the first clone. These contain the summaries
     # created by model_fn and either optimize_clones() or _gather_clone_loss().
-    summaries |= set(tf.get_collection(tf.GraphKeys.SUMMARIES,
+    summaries |= set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES,
                                        first_clone.scope))
 
     if total_loss is not None:
       # Add total_loss to summary.
-      summaries.add(tf.summary.scalar('total_loss', total_loss))
+      summaries.add(tf.compat.v1.summary.scalar('total_loss', total_loss))
 
     if summaries:
       # Merge all summaries together.
-      summary_op = tf.summary.merge(list(summaries), name='summary_op')
+      summary_op = tf.compat.v1.summary.merge(list(summaries), name='summary_op')
     else:
       summary_op = None
 
@@ -465,12 +465,12 @@ def _add_gradients_summaries(grads_and_vars):
         grad_values = grad.values
       else:
         grad_values = grad
-      summaries.append(tf.summary.histogram(var.op.name + ':gradient',
+      summaries.append(tf.compat.v1.summary.histogram(var.op.name + ':gradient',
                                             grad_values))
-      summaries.append(tf.summary.histogram(var.op.name + ':gradient_norm',
+      summaries.append(tf.compat.v1.summary.histogram(var.op.name + ':gradient_norm',
                                             tf.global_norm([grad_values])))
     else:
-      tf.logging.info('Var %s has no gradient', var.op.name)
+      tf.compat.v1.logging.info('Var %s has no gradient', var.op.name)
   return summaries
 
 

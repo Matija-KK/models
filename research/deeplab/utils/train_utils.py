@@ -86,7 +86,7 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
 
     if upsample_logits:
       # Label is not downsampled, and instead we upsample logits.
-      logits = tf.image.resize_bilinear(
+      logits = tf.compat.v1.image.resize_bilinear(
           logits,
           preprocess_utils.resolve_shape(labels, 4)[1:3],
           align_corners=True)
@@ -155,7 +155,7 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
         total_loss = tf.reduce_sum(weighted_pixel_losses)
         num_present = tf.reduce_sum(keep_mask)
         loss = _div_maybe_zero(total_loss, num_present)
-        tf.losses.add_loss(loss)
+        tf.compat.v1.losses.add_loss(loss)
       else:
         num_pixels = tf.to_float(tf.shape(logits)[0])
         # Compute the top_k_percent pixels based on current training step.
@@ -164,7 +164,7 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
           top_k_pixels = tf.to_int32(top_k_percent_pixels * num_pixels)
         else:
           # Gradually reduce the mining percent to top_k_percent_pixels.
-          global_step = tf.to_float(tf.train.get_or_create_global_step())
+          global_step = tf.to_float(tf.compat.v1.train.get_or_create_global_step())
           ratio = tf.minimum(1.0, global_step / hard_example_mining_step)
           top_k_pixels = tf.to_int32(
               (ratio * top_k_percent_pixels + (1.0 - ratio)) * num_pixels)
@@ -176,7 +176,7 @@ def add_softmax_cross_entropy_loss_for_each_scale(scales_to_logits,
         num_present = tf.reduce_sum(
             tf.to_float(tf.not_equal(top_k_losses, 0.0)))
         loss = _div_maybe_zero(total_loss, num_present)
-        tf.losses.add_loss(loss)
+        tf.compat.v1.losses.add_loss(loss)
 
 
 def get_model_init_fn(train_logdir,
@@ -197,17 +197,17 @@ def get_model_init_fn(train_logdir,
     Initialization function.
   """
   if tf_initial_checkpoint is None:
-    tf.logging.info('Not initializing the model from a checkpoint.')
+    tf.compat.v1.logging.info('Not initializing the model from a checkpoint.')
     return None
 
   if tf.train.latest_checkpoint(train_logdir):
-    tf.logging.info('Ignoring initialization; other checkpoint exists')
+    tf.compat.v1.logging.info('Ignoring initialization; other checkpoint exists')
     return None
 
-  tf.logging.info('Initializing model from path: %s', tf_initial_checkpoint)
+  tf.compat.v1.logging.info('Initializing model from path: %s', tf_initial_checkpoint)
 
   # Variables that will not be restored.
-  exclude_list = ['global_step']
+  exclude_list = ['global_step','logits']
   if not initialize_last_layer:
     exclude_list.extend(last_layers)
 
@@ -219,7 +219,7 @@ def get_model_init_fn(train_logdir,
         tf_initial_checkpoint,
         variables_to_restore,
         ignore_missing_vars=ignore_missing_vars)
-    global_step = tf.train.get_or_create_global_step()
+    global_step = tf.compat.v1.train.get_or_create_global_step()
 
     def restore_fn(sess):
       sess.run(init_op, init_feed_dict)
@@ -248,7 +248,7 @@ def get_model_gradient_multipliers(last_layers, last_layer_gradient_multiplier):
   """
   gradient_multipliers = {}
 
-  for var in tf.model_variables():
+  for var in tf.compat.v1.model_variables():
     # Double the learning rate for biases.
     if 'biases' in var.op.name:
       gradient_multipliers[var.op.name] = 2.
@@ -321,10 +321,10 @@ def get_model_learning_rate(learning_policy,
     ValueError: If `boundaries` and `boundary_learning_rates` are not set for
       multi_steps learning rate decay.
   """
-  global_step = tf.train.get_or_create_global_step()
+  global_step = tf.compat.v1.train.get_or_create_global_step()
   adjusted_global_step = tf.maximum(global_step - slow_start_step, 0)
   if decay_steps == 0.0:
-    tf.logging.info('Setting decay_steps to total training steps.')
+    tf.compat.v1.logging.info('Setting decay_steps to total training steps.')
     decay_steps = training_number_of_steps - slow_start_step
   if learning_policy == 'step':
     learning_rate = tf.train.exponential_decay(

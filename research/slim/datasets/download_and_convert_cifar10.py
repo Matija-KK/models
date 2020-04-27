@@ -163,7 +163,7 @@ def run(dataset_dir):
     dataset_dir: The dataset directory where the dataset is stored.
   """
   if not tf.gfile.Exists(dataset_dir):
-    tf.gfile.MakeDirs(dataset_dir)
+    tf.io.gfile.makedirs(dataset_dir)
 
   training_filename = _get_output_filename(dataset_dir, 'train')
   testing_filename = _get_output_filename(dataset_dir, 'test')

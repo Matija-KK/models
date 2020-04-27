@@ -181,7 +181,7 @@ def run(dataset_dir):
     dataset_dir: The dataset directory where the dataset is stored.
   """
   if not tf.gfile.Exists(dataset_dir):
-    tf.gfile.MakeDirs(dataset_dir)
+    tf.io.gfile.makedirs(dataset_dir)
 
   if _dataset_exists(dataset_dir):
     print('Dataset files already exist. Exiting without re-creating them.')

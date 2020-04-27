@@ -105,7 +105,7 @@ def run(dataset_dir, small_object_area_threshold, foreground_class_of_interest):
   coco_dir = os.path.join(dataset_dir, FLAGS.coco_dirname)
 
   if not tf.gfile.IsDirectory(coco_dir):
-    tf.gfile.MakeDirs(coco_dir)
+    tf.io.gfile.makedirs(coco_dir)
 
   download_and_convert_visualwakewords_lib.download_coco_dataset(coco_dir)
 
@@ -127,29 +127,29 @@ def run(dataset_dir, small_object_area_threshold, foreground_class_of_interest):
   val_output_path = os.path.join(dataset_dir, 'val.record')
 
   # 2. Create a labels file
-  tf.logging.info('Creating a labels file...')
+  tf.compat.v1.logging.info('Creating a labels file...')
   download_and_convert_visualwakewords_lib.create_labels_file(
       foreground_class_of_interest, visualwakewords_labels_filename)
 
   # 3. Use COCO annotations to create VisualWakeWords annotations
-  tf.logging.info('Creating train VisualWakeWords annotations...')
+  tf.compat.v1.logging.info('Creating train VisualWakeWords annotations...')
   download_and_convert_visualwakewords_lib.create_visual_wakeword_annotations(
       train_annotations_file, visualwakewords_annotations_train,
       small_object_area_threshold, foreground_class_of_interest)
-  tf.logging.info('Creating validation VisualWakeWords annotations...')
+  tf.compat.v1.logging.info('Creating validation VisualWakeWords annotations...')
   download_and_convert_visualwakewords_lib.create_visual_wakeword_annotations(
       val_annotations_file, visualwakewords_annotations_val,
       small_object_area_threshold, foreground_class_of_interest)
 
   # 4. Use VisualWakeWords annotations to create the TFRecords
-  tf.logging.info('Creating train TFRecords for VisualWakeWords dataset...')
+  tf.compat.v1.logging.info('Creating train TFRecords for VisualWakeWords dataset...')
   download_and_convert_visualwakewords_lib.create_tf_record_for_visualwakewords_dataset(
       visualwakewords_annotations_train,
       train_image_dir,
       train_output_path,
       num_shards=100)
 
-  tf.logging.info(
+  tf.compat.v1.logging.info(
       'Creating validation TFRecords for VisualWakeWords dataset...')
   download_and_convert_visualwakewords_lib.create_tf_record_for_visualwakewords_dataset(
       visualwakewords_annotations_val,

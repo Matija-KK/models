@@ -78,7 +78,7 @@ class NASNetworkTest(tf.test.TestCase):
           backbone=backbone,
           num_classes=num_classes,
           hparams=hparams,
-          reuse=tf.AUTO_REUSE,
+          reuse=tf.compat.v1.AUTO_REUSE,
           scope='pnasnet_small',
           final_endpoint=final_endpoint)
 

@@ -222,7 +222,7 @@ for metric_name, metric_value in metrics_to_values.iteritems():
         tf.not_equal(total_tp + total_fn + total_fp, 0))
     for target_metric, target_value in panoptic_metrics.iteritems():
       output_metric_name = '{}_{}'.format(metric_name, target_metric)
-      op = tf.summary.scalar(
+      op = tf.compat.v1.summary.scalar(
           output_metric_name,
           tf.reduce_mean(tf.boolean_mask(target_value, valid_classes)))
       op = tf.Print(op, [target_value], output_metric_name + '_classwise: ',
@@ -244,7 +244,7 @@ for metric_name, metric_value in metrics_to_values.iteritems():
         tf.not_equal(tf.range(0, num_classes), void_label),
         tf.not_equal(
             total_per_class_weighted_ious + total_per_class_gt_areas, 0))
-    op = tf.summary.scalar(
+    op = tf.compat.v1.summary.scalar(
         metric_name,
         tf.reduce_mean(tf.boolean_mask(per_class_covering, valid_classes)))
     op = tf.Print(op, [per_class_covering], metric_name + '_classwise: ',
@@ -274,7 +274,7 @@ metric_values = slim.evaluation.evaluation_loop(
   num_evals=num_batches,
   eval_op=metrics_to_updates.values(),
   final_op=metrics_to_values.values(),
-  summary_op=tf.summary.merge(summary_ops),
+  summary_op=tf.compat.v1.summary.merge(summary_ops),
   max_number_of_evaluations=FLAGS.max_number_of_evaluations,
   eval_interval_secs=FLAGS.eval_interval_secs)
 ```

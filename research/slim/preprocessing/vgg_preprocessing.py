@@ -155,16 +155,16 @@ def _random_crop(image_list, crop_height, crop_width):
 
   # Create a random bounding box.
   #
-  # Use tf.random_uniform and not numpy.random.rand as doing the former would
+  # Use tf.random.uniform and not numpy.random.rand as doing the former would
   # generate random numbers at graph eval time, unlike the latter which
   # generates random numbers at graph definition time.
   with tf.control_dependencies(asserts):
     max_offset_height = tf.reshape(image_height - crop_height + 1, [])
   with tf.control_dependencies(asserts):
     max_offset_width = tf.reshape(image_width - crop_width + 1, [])
-  offset_height = tf.random_uniform(
+  offset_height = tf.random.uniform(
       [], maxval=max_offset_height, dtype=tf.int32)
-  offset_width = tf.random_uniform(
+  offset_width = tf.random.uniform(
       [], maxval=max_offset_width, dtype=tf.int32)
 
   return [_crop(image, offset_height, offset_width,
@@ -277,7 +277,7 @@ def _aspect_preserving_resize(image, smallest_side):
   width = shape[1]
   new_height, new_width = _smallest_size_at_least(height, width, smallest_side)
   image = tf.expand_dims(image, 0)
-  resized_image = tf.image.resize_bilinear(image, [new_height, new_width],
+  resized_image = tf.compat.v1.image.resize_bilinear(image, [new_height, new_width],
                                            align_corners=False)
   resized_image = tf.squeeze(resized_image)
   resized_image.set_shape([None, None, 3])
@@ -308,7 +308,7 @@ def preprocess_for_train(image,
   Returns:
     A preprocessed image.
   """
-  resize_side = tf.random_uniform(
+  resize_side = tf.random.uniform(
       [], minval=resize_side_min, maxval=resize_side_max+1, dtype=tf.int32)
 
   image = _aspect_preserving_resize(image, resize_side)

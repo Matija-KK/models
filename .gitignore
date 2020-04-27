@@ -102,3 +102,8 @@ tutorials/embedding/text8
 tutorials/embedding/questions-words.txt
 
 samples/outreach/blogs/segmentation_blogpost/carvana-image-masking-challenge/
+
+
+# capsicum_annuum_dataset
+capsicum_annuum_dataset/
+.vscode/

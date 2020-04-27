@@ -124,7 +124,7 @@ def main(_):
   if FLAGS.is_video_model and not FLAGS.num_frames:
     raise ValueError(
         'Number of frames must be specified for video models with --num_frames')
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   with tf.Graph().as_default() as graph:
     dataset = dataset_factory.get_dataset(FLAGS.dataset_name, 'train',
                                           FLAGS.dataset_dir)
@@ -161,4 +161,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  tf.app.run()
+  tf.compat.v1.app.run()

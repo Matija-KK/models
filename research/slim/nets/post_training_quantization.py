@@ -107,7 +107,7 @@ def restore_model(sess, checkpoint_path, enable_ema=True):
   """
   if enable_ema:
     ema = tf.train.ExponentialMovingAverage(decay=0.0)
-    ema_vars = tf.trainable_variables() + tf.get_collection("moving_vars")
+    ema_vars = tf.trainable_variables() + tf.compat.v1.get_collection("moving_vars")
     for v in tf.global_variables():
       if "moving_mean" in v.name or "moving_variance" in v.name:
         ema_vars.append(v)

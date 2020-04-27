@@ -26,8 +26,8 @@ import time
 import numpy as np
 from six.moves import range
 import tensorflow as tf
-from tensorflow.contrib import quantize as contrib_quantize
-from tensorflow.contrib import training as contrib_training
+from tensorflow.compat.v1.quantization import quantize as contrib_quantize
+from tensorflow.compat.v1 import train as contrib_training
 from deeplab import common
 from deeplab import model
 from deeplab.datasets import data_generator
@@ -192,7 +192,7 @@ def _process_batch(sess, original_images, semantic_predictions, image_names,
 
 
 def main(unused_argv):
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
   # Get dataset-dependent information.
   dataset = data_generator.Dataset(
@@ -211,18 +211,18 @@ def main(unused_argv):
 
   train_id_to_eval_id = None
   if dataset.dataset_name == data_generator.get_cityscapes_dataset_name():
-    tf.logging.info('Cityscapes requires converting train_id to eval_id.')
+    tf.compat.v1.logging.info('Cityscapes requires converting train_id to eval_id.')
     train_id_to_eval_id = _CITYSCAPES_TRAIN_ID_TO_EVAL_ID
 
   # Prepare for visualization.
-  tf.gfile.MakeDirs(FLAGS.vis_logdir)
+  tf.io.gfile.makedirs(FLAGS.vis_logdir)
   save_dir = os.path.join(FLAGS.vis_logdir, _SEMANTIC_PREDICTION_SAVE_FOLDER)
-  tf.gfile.MakeDirs(save_dir)
+  tf.io.gfile.makedirs(save_dir)
   raw_save_dir = os.path.join(
       FLAGS.vis_logdir, _RAW_SEMANTIC_PREDICTION_SAVE_FOLDER)
-  tf.gfile.MakeDirs(raw_save_dir)
+  tf.io.gfile.makedirs(raw_save_dir)
 
-  tf.logging.info('Visualizing on %s set', FLAGS.vis_split)
+  tf.compat.v1.logging.info('Visualizing on %s set', FLAGS.vis_split)
 
   with tf.Graph().as_default():
     samples = dataset.get_one_shot_iterator().get_next()
@@ -234,13 +234,13 @@ def main(unused_argv):
         output_stride=FLAGS.output_stride)
 
     if tuple(FLAGS.eval_scales) == (1.0,):
-      tf.logging.info('Performing single-scale test.')
+      tf.compat.v1.logging.info('Performing single-scale test.')
       predictions = model.predict_labels(
           samples[common.IMAGE],
           model_options=model_options,
           image_pyramid=FLAGS.image_pyramid)
     else:
-      tf.logging.info('Performing multi-scale test.')
+      tf.compat.v1.logging.info('Performing multi-scale test.')
       if FLAGS.quantize_delay_step >= 0:
         raise ValueError(
             'Quantize mode is not supported with multi-scale test.')
@@ -273,7 +273,7 @@ def main(unused_argv):
                                  method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
                                  align_corners=True), 3)
 
-    tf.train.get_or_create_global_step()
+    tf.compat.v1.train.get_or_create_global_step()
     if FLAGS.quantize_delay_step >= 0:
       contrib_quantize.create_eval_graph()
 
@@ -284,10 +284,10 @@ def main(unused_argv):
         FLAGS.checkpoint_dir, min_interval_secs=FLAGS.eval_interval_secs)
     for checkpoint_path in checkpoints_iterator:
       num_iteration += 1
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           'Starting visualization at ' + time.strftime('%Y-%m-%d-%H:%M:%S',
                                                        time.gmtime()))
-      tf.logging.info('Visualizing with model %s', checkpoint_path)
+      tf.compat.v1.logging.info('Visualizing with model %s', checkpoint_path)
 
       scaffold = tf.train.Scaffold(init_op=tf.global_variables_initializer())
       session_creator = tf.train.ChiefSessionCreator(
@@ -300,7 +300,7 @@ def main(unused_argv):
         image_id_offset = 0
 
         while not sess.should_stop():
-          tf.logging.info('Visualizing batch %d', batch + 1)
+          tf.compat.v1.logging.info('Visualizing batch %d', batch + 1)
           _process_batch(sess=sess,
                          original_images=samples[common.ORIGINAL_IMAGE],
                          semantic_predictions=predictions,
@@ -314,7 +314,7 @@ def main(unused_argv):
           image_id_offset += FLAGS.vis_batch_size
           batch += 1
 
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           'Finished visualization at ' + time.strftime('%Y-%m-%d-%H:%M:%S',
                                                        time.gmtime()))
       if max_num_iteration > 0 and num_iteration >= max_num_iteration:
@@ -324,4 +324,4 @@ if __name__ == '__main__':
   flags.mark_flag_as_required('checkpoint_dir')
   flags.mark_flag_as_required('vis_logdir')
   flags.mark_flag_as_required('dataset_dir')
-  tf.app.run()
+  tf.compat.v1.app.run()

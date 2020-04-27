@@ -208,13 +208,13 @@ class NASBaseCell(object):
       layer_ratio = (self._cell_num + 1) / float(self._total_num_cells)
       drop_path_keep_prob = 1 - layer_ratio * (1 - drop_path_keep_prob)
       # Decrease keep prob over time.
-      current_step = tf.cast(tf.train.get_or_create_global_step(), tf.float32)
+      current_step = tf.cast(tf.compat.v1.train.get_or_create_global_step(), tf.float32)
       current_ratio = tf.minimum(1.0, current_step / self._total_training_steps)
       drop_path_keep_prob = (1 - current_ratio * (1 - drop_path_keep_prob))
       # Drop path.
       noise_shape = [tf.shape(net)[0], 1, 1, 1]
       random_tensor = drop_path_keep_prob
-      random_tensor += tf.random_uniform(noise_shape, dtype=tf.float32)
+      random_tensor += tf.random.uniform(noise_shape, dtype=tf.float32)
       binary_tensor = tf.cast(tf.floor(random_tensor), net.dtype)
       keep_prob_inv = tf.cast(1.0 / drop_path_keep_prob, net.dtype)
       net = net * keep_prob_inv * binary_tensor

@@ -57,7 +57,7 @@ class UtilityFunctionTest(tf.test.TestCase):
     tf.get_variable('Conv/pointwise_weights',
                     initializer=tf.ones([1, 1, 1, 1]))
     tf.get_variable('Conv/biases', initializer=tf.zeros([1]))
-    tf.get_variable_scope().reuse_variables()
+    tf.compat.v1.get_variable_scope().reuse_variables()
 
     y1 = slim.separable_conv2d(x, 1, [3, 3], depth_multiplier=1,
                                stride=1, scope='Conv')
@@ -104,7 +104,7 @@ class UtilityFunctionTest(tf.test.TestCase):
     tf.get_variable('Conv/pointwise_weights',
                     initializer=tf.ones([1, 1, 1, 1]))
     tf.get_variable('Conv/biases', initializer=tf.zeros([1]))
-    tf.get_variable_scope().reuse_variables()
+    tf.compat.v1.get_variable_scope().reuse_variables()
 
     y1 = slim.separable_conv2d(x, 1, [3, 3], depth_multiplier=1,
                                stride=1, scope='Conv')
@@ -381,7 +381,7 @@ class XceptionNetworkTest(tf.test.TestCase):
               factor = nominal_stride // output_stride
             output = resnet_utils.subsample(output, factor)
             # Make the two networks use the same weights.
-            tf.get_variable_scope().reuse_variables()
+            tf.compat.v1.get_variable_scope().reuse_variables()
             # Feature extraction at the nominal network rate.
             expected, _ = self._xception_small(
                 inputs,

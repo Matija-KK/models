@@ -114,8 +114,8 @@ def _create_input_tensors():
 
 
 def main(unused_argv):
-  tf.logging.set_verbosity(tf.logging.INFO)
-  tf.logging.info('Prepare to export model to: %s', FLAGS.export_path)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
+  tf.compat.v1.logging.info('Prepare to export model to: %s', FLAGS.export_path)
 
   with tf.Graph().as_default():
     image, image_size, resized_image_size = _create_input_tensors()
@@ -127,13 +127,13 @@ def main(unused_argv):
         output_stride=FLAGS.output_stride)
 
     if tuple(FLAGS.inference_scales) == (1.0,):
-      tf.logging.info('Exported model performs single-scale inference.')
+      tf.compat.v1.logging.info('Exported model performs single-scale inference.')
       predictions = model.predict_labels(
           image,
           model_options=model_options,
           image_pyramid=FLAGS.image_pyramid)
     else:
-      tf.logging.info('Exported model performs multi-scale inference.')
+      tf.compat.v1.logging.info('Exported model performs multi-scale inference.')
       if FLAGS.quantize_delay_step >= 0:
         raise ValueError(
             'Quantize mode is not supported with multi-scale test.')
@@ -168,7 +168,7 @@ def main(unused_argv):
     semantic_predictions = _resize_label(semantic_predictions, image_size)
     semantic_predictions = tf.identity(semantic_predictions, name=_OUTPUT_NAME)
 
-    semantic_probabilities = tf.image.resize_bilinear(
+    semantic_probabilities = tf.compat.v1.image.resize_bilinear(
         semantic_probabilities, image_size, align_corners=True,
         name=_OUTPUT_PROB_NAME)
 
@@ -178,7 +178,7 @@ def main(unused_argv):
     saver = tf.train.Saver(tf.all_variables())
 
     dirname = os.path.dirname(FLAGS.export_path)
-    tf.gfile.MakeDirs(dirname)
+    tf.io.gfile.makedirs(dirname)
     graph_def = tf.get_default_graph().as_graph_def(add_shapes=True)
     freeze_graph.freeze_graph_with_def_protos(
         graph_def,
@@ -198,4 +198,4 @@ def main(unused_argv):
 if __name__ == '__main__':
   flags.mark_flag_as_required('checkpoint_path')
   flags.mark_flag_as_required('export_path')
-  tf.app.run()
+  tf.compat.v1.app.run()

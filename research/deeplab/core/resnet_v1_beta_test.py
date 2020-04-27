@@ -247,7 +247,7 @@ class ResnetCompleteNetworkTest(tf.test.TestCase):
               factor = nominal_stride // output_stride
             output = resnet_utils.subsample(output, factor)
             # Make the two networks use the same weights.
-            tf.get_variable_scope().reuse_variables()
+            tf.compat.v1.get_variable_scope().reuse_variables()
             # Feature extraction at the nominal network rate.
             expected, _ = self._resnet_small_lite_bottleneck(
                 inputs,
@@ -493,7 +493,7 @@ class ResnetCompleteNetworkTest(tf.test.TestCase):
               factor = nominal_stride // output_stride
             output = resnet_utils.subsample(output, factor)
             # Make the two networks use the same weights.
-            tf.get_variable_scope().reuse_variables()
+            tf.compat.v1.get_variable_scope().reuse_variables()
             # Feature extraction at the nominal network rate.
             expected, _ = self._resnet_small(inputs,
                                              None,

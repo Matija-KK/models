@@ -181,7 +181,7 @@ class Dataset(object):
       raise ValueError('data split name %s not recognized' % split_name)
 
     if model_variant is None:
-      tf.logging.warning('Please specify a model_variant. See '
+      tf.compat.v1.logging.warning('Please specify a model_variant. See '
                          'feature_extractor.network_map for supported model '
                          'variants.')
 
@@ -229,22 +229,22 @@ class Dataset(object):
 
     features = {
         'image/encoded':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/filename':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/format':
-            tf.FixedLenFeature((), tf.string, default_value='jpeg'),
+            tf.io.FixedLenFeature((), tf.string, default_value='jpeg'),
         'image/height':
-            tf.FixedLenFeature((), tf.int64, default_value=0),
+            tf.io.FixedLenFeature((), tf.int64, default_value=0),
         'image/width':
-            tf.FixedLenFeature((), tf.int64, default_value=0),
+            tf.io.FixedLenFeature((), tf.int64, default_value=0),
         'image/segmentation/class/encoded':
-            tf.FixedLenFeature((), tf.string, default_value=''),
+            tf.io.FixedLenFeature((), tf.string, default_value=''),
         'image/segmentation/class/format':
-            tf.FixedLenFeature((), tf.string, default_value='png'),
+            tf.io.FixedLenFeature((), tf.string, default_value='png'),
     }
 
-    parsed_features = tf.parse_single_example(example_proto, features)
+    parsed_features = tf.io.parse_single_example(example_proto, features)
 
     image = _decode_image(parsed_features['image/encoded'], channels=3)
 
@@ -358,4 +358,4 @@ class Dataset(object):
     file_pattern = _FILE_PATTERN
     file_pattern = os.path.join(self.dataset_dir,
                                 file_pattern % self.split_name)
-    return tf.gfile.Glob(file_pattern)
+    return tf.io.gfile.glob(file_pattern)

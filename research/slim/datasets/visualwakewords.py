@@ -86,11 +86,11 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
 
   keys_to_features = {
       'image/encoded':
-          tf.FixedLenFeature((), tf.string, default_value=''),
+          tf.io.FixedLenFeature((), tf.string, default_value=''),
       'image/format':
-          tf.FixedLenFeature((), tf.string, default_value='jpeg'),
+          tf.io.FixedLenFeature((), tf.string, default_value='jpeg'),
       'image/class/label':
-          tf.FixedLenFeature([], dtype=tf.int64, default_value=-1),
+          tf.io.FixedLenFeature([], dtype=tf.int64, default_value=-1),
       'image/object/bbox/xmin':
           tf.VarLenFeature(dtype=tf.float32),
       'image/object/bbox/ymin':

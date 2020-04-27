@@ -271,7 +271,7 @@ def _build_deeplab(iterator, outputs_to_num_classes, ignore_label):
 
 
 def main(unused_argv):
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   # Set up deployment (i.e., multi-GPUs and/or multi-replicas).
   config = model_deploy.DeploymentConfig(
       num_clones=FLAGS.num_clones,
@@ -286,8 +286,8 @@ def main(unused_argv):
 
   clone_batch_size = FLAGS.train_batch_size // config.num_clones
 
-  tf.gfile.MakeDirs(FLAGS.train_logdir)
-  tf.logging.info('Training on %s set', FLAGS.train_split)
+  tf.io.gfile.makedirs(FLAGS.train_logdir)
+  tf.compat.v1.logging.info('Training on %s set', FLAGS.train_split)
 
   with tf.Graph().as_default() as graph:
     with tf.device(config.inputs_device()):
@@ -311,7 +311,7 @@ def main(unused_argv):
 
     # Create the global step on the device storing the variables.
     with tf.device(config.variables_device()):
-      global_step = tf.train.get_or_create_global_step()
+      global_step = tf.compat.v1.train.get_or_create_global_step()
 
       # Define the model and create clones.
       model_fn = _build_deeplab
@@ -323,14 +323,14 @@ def main(unused_argv):
       # Gather update_ops from the first clone. These contain, for example,
       # the updates for the batch_norm variables created by model_fn.
       first_clone_scope = config.clone_scope(0)
-      update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, first_clone_scope)
+      update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, first_clone_scope)
 
     # Gather initial summaries.
-    summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
+    summaries = set(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES))
 
     # Add summaries for model variables.
-    for model_var in tf.model_variables():
-      summaries.add(tf.summary.histogram(model_var.op.name, model_var))
+    for model_var in tf.compat.v1.model_variables():
+      summaries.add(tf.compat.v1.summary.histogram(model_var.op.name, model_var))
 
     # Add summaries for images, labels, semantic predictions
     if FLAGS.save_summaries_images:
@@ -357,8 +357,8 @@ def main(unused_argv):
               'samples/%s' % common.OUTPUT_TYPE, summary_predictions))
 
     # Add summaries for losses.
-    for loss in tf.get_collection(tf.GraphKeys.LOSSES, first_clone_scope):
-      summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
+    for loss in tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.LOSSES, first_clone_scope):
+      summaries.add(tf.compat.v1.summary.scalar('losses/%s' % loss.op.name, loss))
 
     # Build the optimizer based on the device specification.
     with tf.device(config.optimizer_device()):
@@ -374,10 +374,10 @@ def main(unused_argv):
           decay_steps=FLAGS.decay_steps,
           end_learning_rate=FLAGS.end_learning_rate)
 
-      summaries.add(tf.summary.scalar('learning_rate', learning_rate))
+      summaries.add(tf.compat.v1.summary.scalar('learning_rate', learning_rate))
 
       if FLAGS.optimizer == 'momentum':
-        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
       elif FLAGS.optimizer == 'adam':
         optimizer = tf.train.AdamOptimizer(
             learning_rate=FLAGS.adam_learning_rate, epsilon=FLAGS.adam_epsilon)
@@ -395,8 +395,8 @@ def main(unused_argv):
     with tf.device(config.variables_device()):
       total_loss, grads_and_vars = model_deploy.optimize_clones(
           clones, optimizer)
-      total_loss = tf.check_numerics(total_loss, 'Loss is inf or nan.')
-      summaries.add(tf.summary.scalar('total_loss', total_loss))
+      total_loss = tf.debugging.check_numerics(total_loss, 'Loss is inf or nan.')
+      summaries.add(tf.compat.v1.summary.scalar('total_loss', total_loss))
 
       # Modify the gradients for biases and last layer variables.
       last_layers = model.get_extra_layer_scopes(
@@ -418,19 +418,19 @@ def main(unused_argv):
     # Add the summaries from the first clone. These contain the summaries
     # created by model_fn and either optimize_clones() or _gather_clone_loss().
     summaries |= set(
-        tf.get_collection(tf.GraphKeys.SUMMARIES, first_clone_scope))
+        tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.SUMMARIES, first_clone_scope))
 
     # Merge all summaries together.
-    summary_op = tf.summary.merge(list(summaries))
+    summary_op = tf.compat.v1.summary.merge(list(summaries))
 
     # Soft placement allows placing on CPU ops without GPU implementation.
-    session_config = tf.ConfigProto(
+    session_config = tf.compat.v1.ConfigProto(
         allow_soft_placement=True, log_device_placement=False)
 
     # Start the training.
     profile_dir = FLAGS.profile_logdir
     if profile_dir is not None:
-      tf.gfile.MakeDirs(profile_dir)
+      tf.io.gfile.makedirs(profile_dir)
 
     with contrib_tfprof.ProfileContext(
         enabled=profile_dir is not None, profile_dir=profile_dir):
@@ -461,4 +461,4 @@ def main(unused_argv):
 if __name__ == '__main__':
   flags.mark_flag_as_required('train_logdir')
   flags.mark_flag_as_required('dataset_dir')
-  tf.app.run()
+  tf.compat.v1.app.run()
